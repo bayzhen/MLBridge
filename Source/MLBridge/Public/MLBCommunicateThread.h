@@ -31,30 +31,21 @@ public:
 	virtual void Exit() override;
 
 	// Action is a part of the command received from ML machine.
-	void EnqueueCommand(const FString& Command);
-	bool DequeueCommand(FString& OutCommand);
-	void SendObs(const FString& Data);
 	static FMLBCommunicateThread* GetThread();
 
 public:
+	TQueue<FString> CommandQueue;
+	TQueue<FString> ObsQueue;
+	static FMLBCommunicateThread* self;
+	void Reconnect();
+
+private:
 	FThreadSafeBool bStopThread;
 	FRunnableThread* Thread;
 	FString IPAddress;
 	int32 Port;
-
-	TQueue<FString> CommandQueue;
-	TQueue<FString> ObsQueue;
-
 	TSharedPtr<FSocket> Socket;
 	TSharedPtr<FInternetAddr> Addr;
-
-	void Reconnect();
-	bool ProcessIncomingData(FString& InData);
-	void PushTMapIntoObsQueue(TMap<FString, float>& ObsTMap);
-	void PushFStringIntoObsQueue(FString ObsFString);
-
 	bool SendData(const FString& Data);
-	bool Finished;
 	const int32 ReceiveBufferSize = 1024;
-	static FMLBCommunicateThread* self;
 };

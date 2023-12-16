@@ -297,10 +297,8 @@ void AMLBManager::RegisterReturnObs()
 
 void AMLBManager::SocketReconnect()
 {
-	if (MLBCommunicateThread&& MLBCommunicateThread->Socket) {
-		MLBCommunicateThread->Socket->Close();
-	}
-	MLBCommunicateThread->Reconnect();
+	if (MLBCommunicateThread)
+		MLBCommunicateThread->Reconnect();
 }
 
 

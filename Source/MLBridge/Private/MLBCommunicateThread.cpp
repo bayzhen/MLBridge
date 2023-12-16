@@ -51,7 +51,7 @@ uint32 FMLBCommunicateThread::Run()
 				}
 			}
 			if (!ReceivedData.IsEmpty()) {
-				ProcessIncomingData(ReceivedData);
+				CommandQueue.Enqueue(ReceivedData);
 			}
 			while (!ObsQueue.IsEmpty()) {
 				FString Obs;
@@ -69,6 +69,7 @@ void FMLBCommunicateThread::Stop()
 {
 	bStopThread = true;
 	UE_LOG(LogTemp, Log, TEXT("FMLBCommunicateThread Stop."));
+	this->Thread->WaitForCompletion();
 }
 
 void FMLBCommunicateThread::Exit()
@@ -77,20 +78,6 @@ void FMLBCommunicateThread::Exit()
 	UE_LOG(LogTemp, Log, TEXT("FMLBCommunicateThread Exit."));
 }
 
-void FMLBCommunicateThread::EnqueueCommand(const FString& Command)
-{
-	CommandQueue.Enqueue(Command);
-}
-
-bool FMLBCommunicateThread::DequeueCommand(FString& OutCommand)
-{
-	return CommandQueue.Dequeue(OutCommand);
-}
-
-void FMLBCommunicateThread::SendObs(const FString& Data)
-{
-	this->ObsQueue.Enqueue(Data);
-}
 
 FMLBCommunicateThread* FMLBCommunicateThread::GetThread()
 {
@@ -128,27 +115,10 @@ void FMLBCommunicateThread::Reconnect()
 		// ≤ª¥Ú”°¡À°£
 		// UE_LOG(LogTemp, Warning, TEXT("Failed to connect to %s:%d"), *IPAddress, Port);
 		Socket.Reset();
-		FPlatformProcess::Sleep(0.5f); // Wait for 5 seconds before trying to reconnect
+		FPlatformProcess::Sleep(5.0f); // Wait for 5 seconds before trying to reconnect
 	}
 	else
 	{
 		UE_LOG(LogTemp, Log, TEXT("Connected to %s:%d"), *IPAddress, Port);
 	}
 }
-
-bool FMLBCommunicateThread::ProcessIncomingData(FString& InData)
-{
-	if (!InData.IsEmpty())
-	{
-		EnqueueCommand(InData);
-		return true;
-	}
-
-	return false;
-}
-
-void FMLBCommunicateThread::PushTMapIntoObsQueue(TMap<FString, float>& Obs)
-{
-
-}
-
