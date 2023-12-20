@@ -2,7 +2,10 @@
 
 #include "Subsystems/Subsystem.h"
 #include "MLBSetting.h"
+#include "Delegates/Delegate.h"
 #include "MLBSubsystem.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTrainingStart);
 
 UCLASS()
 class MLBRIDGE_API UMLBSubsystem : public UGameInstanceSubsystem
@@ -16,18 +19,10 @@ public:
     UFUNCTION(BlueprintCallable)
     static UMLBSubsystem* Get();
 
-    UFUNCTION(BlueprintCallable)
-    UWorld* GetRunningWorld();
-
-    UFUNCTION(BlueprintCallable)
-    UPlayerInput* GetPlayerInput();
-
-    UFUNCTION(BlueprintCallable)
-    void SimulateKeyPressAndRelase(FName KeyName, float Duration); 
-
-    UFUNCTION(BlueprintCallable)
-    void SimulateKeyRelease(FName KeyName);
     // Add your custom functions here
 
     static UMLBSubsystem* self;
+    UPROPERTY(BlueprintAssignable, Category = "MLBridge")
+    FOnTrainingStart OnTrainingStart;
+
 };

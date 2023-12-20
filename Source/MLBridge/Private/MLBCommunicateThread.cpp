@@ -14,11 +14,10 @@ FMLBCommunicateThread::FMLBCommunicateThread(const FString& InIPAddress, int32 I
 {
 	bStopThread = false;
 	Addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
-
 	bool bIsValid;
 	Addr->SetIp(*IPAddress, bIsValid);
 	Addr->SetPort(Port);
-
+	self = this;
 	Thread =  FRunnableThread::Create(this, TEXT("MLBCommunicateThread"), 0, TPri_BelowNormal);
 }
 
@@ -50,13 +49,38 @@ uint32 FMLBCommunicateThread::Run()
 					ReceivedData += *DataPart;
 				}
 			}
+			// 如果收到的数据不为空。
 			if (!ReceivedData.IsEmpty()) {
-				CommandQueue.Enqueue(ReceivedData);
+				// 解析字符串为JsonObjectPtr
+				auto JsonObjectPtr = FStringIntoJson(ReceivedData);
+				// 准备即将压入队列的操作Map
+				TMap<FString, FString> InCmds;
+				InCmds.Add("operation", JsonObjectPtr->GetStringField("operation"));
+				TArray<float> InActionValues;
+				auto ValueArr = JsonObjectPtr->GetArrayField("state");
+				for (auto Value : ValueArr) {
+					float ActionValue = Value->AsNumber();
+					InActionValues.Add(ActionValue);
+				}
+				FMLBCmdUnit CmdUnit(InCmds, InActionValues);
+				// 将操作Map压入指令队列。
+				CmdArr.Add(CmdUnit);
 			}
-			while (!ObsQueue.IsEmpty()) {
-				FString Obs;
-				ObsQueue.Dequeue(Obs);
-				this->SendData(Obs);
+			while (!ObsArr.IsEmpty()) {
+				FMLBObsUnit ObsUnit = ObsArr[0];
+				ObsArr.RemoveAt(0);
+				TSharedPtr<FJsonObject> JsonObjectPtr = MakeShared<FJsonObject>();
+				TArray<TSharedPtr<FJsonValue>> StateJsonValues;
+				for (auto StateValue : ObsUnit.StateValues) {
+					TSharedPtr<FJsonValueNumber> StateJsonValue = MakeShared<FJsonValueNumber>(StateValue);
+					StateJsonValues.Add(StateJsonValue);
+				}
+				JsonObjectPtr->SetNumberField("reward", ObsUnit.Reward);
+				JsonObjectPtr->SetArrayField("values", StateJsonValues);
+				JsonObjectPtr->SetBoolField("terminated", ObsUnit.Terminated);
+				JsonObjectPtr->SetBoolField("truncated", ObsUnit.Truncated);
+				FString JsonString = JsonIntoFString(JsonObjectPtr);
+				this->SendData(JsonString);
 			}
 		}
 		FPlatformProcess::Sleep(0.01f);
@@ -121,4 +145,29 @@ void FMLBCommunicateThread::Reconnect()
 	{
 		UE_LOG(LogTemp, Log, TEXT("Connected to %s:%d"), *IPAddress, Port);
 	}
+}
+
+
+TSharedPtr<FJsonObject> FMLBCommunicateThread::FStringIntoJson(FString& JsonString) {
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(JsonString);
+
+	if (FJsonSerializer::Deserialize(JsonReader, JsonObject))
+	{
+		return JsonObject;
+	}
+	else
+	{
+		// Failed to deserialize JSON FString
+		UE_LOG(LogTemp, Error, TEXT("Failed to parse JSON FString"));
+		return nullptr;
+	}
+}
+
+FString FMLBCommunicateThread::JsonIntoFString(TSharedPtr<FJsonObject> JsonObject)
+{
+	FString JsonString;
+	TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&JsonString);
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), JsonWriter);
+	return JsonString;
 }

@@ -5,13 +5,6 @@
 #include "MLBSetting.h"
 #define LOCTEXT_NAMESPACE "FMLBridgeModule"
 
-/// <summary>
-/// 要求：
-///		模块启动后会持续检测AI主机是否在线。
-///		一旦错误断线直接关闭游戏。
-///		关于奖励的设计在Python那边。
-///		每一次UE的log都会被保存起来用以查出问题。
-/// </summary>
 void FMLBridgeModule::StartupModule()
 {
 	UDataTable* MyDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Script/Engine.DataTable'/MLBridge/DT_MLBConnectionSettings.DT_MLBConnectionSettings'"));

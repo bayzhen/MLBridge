@@ -34,10 +34,12 @@ public:
 	static FMLBCommunicateThread* GetThread();
 
 public:
-	TQueue<FString> CommandQueue;
-	TQueue<FString> ObsQueue;
+	TArray<FMLBCmdUnit> CmdArr;
+	TArray<FMLBObsUnit> ObsArr;
 	static FMLBCommunicateThread* self;
-	void Reconnect();
+	void Reconnect();	
+	TSharedPtr<FJsonObject> FStringIntoJson(FString& JsonString);
+	FString JsonIntoFString(TSharedPtr<FJsonObject> JsonObject);
 
 private:
 	FThreadSafeBool bStopThread;
