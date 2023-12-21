@@ -5,7 +5,7 @@
 #include "GameFramework/PlayerInput.h"
 #include "MLBSetting.generated.h"
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, meta = (HasNativeBreak = "/Script/MLBridge.MLBBPFunctionLibrary.BreakMLBCmdUnit", HasNativeMake = "/Script/MLBridge.MLBBPFunctionLibrary.MakeMLBCmdUnit"))
 struct MLBRIDGE_API FMLBCmdUnit {
 	GENERATED_BODY()
 	FMLBCmdUnit() : Cmds(), ActionValues() {}
@@ -18,7 +18,7 @@ struct MLBRIDGE_API FMLBCmdUnit {
 	TArray<float> ActionValues;
 };
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, meta = (HasNativeBreak = "/Script/MLBridge.MLBBPFunctionLibrary.BreakMLBObsUnit", HasNativeMake = "/Script/MLBridge.MLBBPFunctionLibrary.MakeMLBObsUnit"))
 struct MLBRIDGE_API FMLBObsUnit {
 	GENERATED_BODY()
 	FMLBObsUnit() : 
