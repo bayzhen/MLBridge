@@ -68,7 +68,6 @@ uint32 FMLBCommunicateThread::Run()
 			}
 			while (!ObsArr.IsEmpty()) {
 				FMLBObsUnit ObsUnit = ObsArr[0];
-				ObsArr.RemoveAt(0);
 				TSharedPtr<FJsonObject> JsonObjectPtr = MakeShared<FJsonObject>();
 				TArray<TSharedPtr<FJsonValue>> StateJsonValues;
 				for (auto StateValue : ObsUnit.StateValues) {
@@ -81,6 +80,7 @@ uint32 FMLBCommunicateThread::Run()
 				JsonObjectPtr->SetBoolField("truncated", ObsUnit.Truncated);
 				FString JsonString = JsonIntoFString(JsonObjectPtr);
 				this->SendData(JsonString);
+				ObsArr.RemoveAt(0);
 			}
 		}
 		FPlatformProcess::Sleep(0.01f);
