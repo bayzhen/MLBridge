@@ -36,11 +36,12 @@ public:
 	}
 
 	UFUNCTION(BlueprintPure)
-	static void BreakMLBObsUnit(const FMLBObsUnit& MLBObsUnit, TArray<float>& InStateValues, float& InReward, bool& InTerminated, bool& InTruncated) {
+	static void BreakMLBObsUnit(const FMLBObsUnit& MLBObsUnit, TArray<float>& InStateValues, float& InReward, bool& InTerminated, bool& InTruncated, bool& Working) {
 		InStateValues = MLBObsUnit.StateValues;
 		InReward = MLBObsUnit.Reward; 
 		InTerminated = MLBObsUnit.Terminated; 
 		InTruncated = MLBObsUnit.Truncated;
+		Working = MLBObsUnit.Working;
 	}
 
 	UFUNCTION(BlueprintPure)
@@ -49,8 +50,9 @@ public:
 	}
 
 	UFUNCTION(BlueprintPure)
-	static void BreakMLBCmdUnit(const FMLBCmdUnit& MLBCmdUnit, TMap<FString, FString>& InCmds, TArray<float>& InActionValues) {
+	static void BreakMLBCmdUnit(const FMLBCmdUnit& MLBCmdUnit, TMap<FString, FString>& InCmds, TArray<float>& InActionValues, bool& Working) {
 		InCmds = MLBCmdUnit.Cmds; 
 		InActionValues = MLBCmdUnit.ActionValues;
+		Working = MLBCmdUnit.Working;
 	}
 };
