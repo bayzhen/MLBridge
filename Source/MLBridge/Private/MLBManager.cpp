@@ -43,17 +43,32 @@ void AMLBManager::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	// return if it is not training.
 	if (!IsTraining) return;
-	// Whether there are observation.
-	if (MLBCommunicateThread->ObsArr.IsEmpty()) {
-		auto Obs = CollectObsUnit();
-		MLBCommunicateThread->ObsArr.Add(Obs);
-	}
+	// The time Tick started.
+	FDateTime TickGameTime = FDateTime::Now();
 	// Check Whether there is command received.
-	bool HasExecuteCommand = false;
-	while (!HasExecuteCommand) {
-		if (!MLBCommunicateThread->CmdArr.IsEmpty()) {
+	if (this->AllowTickingWhenTraining) {
+		if (MLBCommunicateThread->CmdArr.Num() > 0) {
 			ExecuteCmdUnit(MLBCommunicateThread->CmdArr[0]);
-			HasExecuteCommand = true;
+			MLBCommunicateThread->CmdArr.RemoveAt(0);
+			FMLBObsUnit Obs = CollectObsUnit();
+			MLBCommunicateThread->ObsArr.Add(Obs);
+		}
+	}
+	else {
+		bool HasExecuteCommand = false;
+		while (!HasExecuteCommand && IsTraining) {
+			FDateTime CurGameTime = FDateTime::Now();
+			if ((CurGameTime - TickGameTime).GetTotalSeconds() > 30) {
+				MLBLogInfo(FString("Waiting over 30s. Stop training."));
+				IsTraining = false;
+			}
+			if (MLBCommunicateThread->CmdArr.Num() > 0) {
+				ExecuteCmdUnit(MLBCommunicateThread->CmdArr[0]);
+				MLBCommunicateThread->CmdArr.RemoveAt(0);
+				FMLBObsUnit Obs = CollectObsUnit();
+				MLBCommunicateThread->ObsArr.Add(Obs);
+				HasExecuteCommand = true;
+			}
 		}
 	}
 }

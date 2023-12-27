@@ -43,6 +43,8 @@ public:
 	bool IsTraining;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "MLBridge")
 	FName MLBTrainingSettingRowName;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "MLBridge")
+	bool AllowTickingWhenTraining;
 	FMLBCommunicateThread* MLBCommunicateThread;
 	FMLBTrainingSetting* MLBTrainingSetting;
 	TMap<FString, float> ObsMap;
